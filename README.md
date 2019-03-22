@@ -21,7 +21,12 @@ network={
 After booting the pi, check the router to find the IP address and 'ssh
 pi@<the IP address>'. The password is 'raspberry'.
 
+NOTE that if the extra USB<->wifi adapter is plugged in, there may be
+two IP addresses. Only one will allow logins!
+
 ## Set the Locale and the Timezone ##
+
+******* THIS DOESN'T WORK *******
 
 export LANGUAGE=en_US.UTF-8
 export LANG=en_US.UTF-8
@@ -30,7 +35,16 @@ locale-gen en_US.UTF-8
 dpkg-reconfigure locales
 sudo rm /etc/localtime
 sudo ln -s /usr/share/zoneinfo/US/Central /etc/localtime
-reboot
+sudo reboot
+
+******* MAYBE THIS? *******
+
+sudo raspi-config
+	- Add en_US.UTF-8.
+	- Choose en_US.UTF-8 as a default.
+sudo rm /etc/localtime
+sudo ln -s /usr/share/zoneinfo/US/Central /etc/localtime
+sudo reboot
 
 ## Change the Password and Update ##
 
@@ -44,7 +58,6 @@ sudo reboot
 
 ssh-keygen -t rsa -C "pi@raspberrypi"
 git clone https://github.com/johnjacques/environment.git
-git clone https://github.com/eruditelite/raspbiansetup.git
 rm $HOME/.profile
 ln -s $HOME/environment/login $HOME/.profile
 rm $HOME/.bashrc
@@ -100,4 +113,11 @@ wpa_passphrase=SeeTheStars
 ...uncomment DAEMON_CONF in /etc/default/hostapd and have it point to the above
 DAEMON_CONF="/etc/hostapd/hostapd.conf"
 
-reboot
+sudo reboot
+
+sudo systemctl unmask hostapd
+sudo systemctl enable hostapd
+sudo systemctl start hostapd
+sudo systemctl unmask dnsmasq
+sudo systemctl enable dnsmasq
+sudo systemctl start dnsmasq
