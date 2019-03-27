@@ -3,8 +3,19 @@
 ## Raspbian Install and First Boot ##
 
 This is fairly straight forward, the only difference is that wifi
-needs to be set up and ssh enabled before the first boot. To do this,
-add the following to the boot partition after writing the image.
+needs to be set up and ssh enabled before the first boot.
+
+### For the Basic Install ###
+
+dd bs=4M if=<raspbian .img> of=/dev/mmcblk0 conv=fsync
+
+### Update the Host Name ###
+
+Mount the Linux root partition, and edit <mount point>/etc/hostname.
+
+### Set Up the Network ###
+
+To do this, add the following to the boot partition after writing the image.
 
   * Create an empty file named 'ssh' (touch ssh).
   * Create a file named 'wpa_supplicant.conf' with the following contents
@@ -18,6 +29,8 @@ network={
     psk="<the network's password>"
 }
 
+Boot the pi.
+
 After booting the pi, check the router to find the IP address and 'ssh
 pi@<the IP address>'. The password is 'raspberry'.
 
@@ -25,19 +38,6 @@ NOTE that if the extra USB<->wifi adapter is plugged in, there may be
 two IP addresses. Only one will allow logins!
 
 ## Set the Locale and the Timezone ##
-
-******* THIS DOESN'T WORK *******
-
-export LANGUAGE=en_US.UTF-8
-export LANG=en_US.UTF-8
-export LC_ALL=en_US.UTF-8
-locale-gen en_US.UTF-8
-dpkg-reconfigure locales
-sudo rm /etc/localtime
-sudo ln -s /usr/share/zoneinfo/US/Central /etc/localtime
-sudo reboot
-
-******* MAYBE THIS? *******
 
 sudo raspi-config
 	- Add en_US.UTF-8.
@@ -121,3 +121,11 @@ sudo systemctl start hostapd
 sudo systemctl unmask dnsmasq
 sudo systemctl enable dnsmasq
 sudo systemctl start dnsmasq
+
+...to keep the interface names consistent, use ifrename
+
+sudo apt install ifrename
+
+...create /etc/iftab with the following
+wlan0 mac <mac address of the built-in wifi interface>
+wlan1 mac <mac address of the plug in wifi interface>
