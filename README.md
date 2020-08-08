@@ -7,7 +7,7 @@ needs to be set up and ssh enabled before the first boot.
 
 ### For the Basic Install ###
 
-dd bs=4M if=<raspbian .img> of=/dev/mmcblk0 conv=fsync
+dd bs=4M if=<raspbian .img> of=/dev/mmcblk0 conv=fsync status=progress
 
 ### Update the Host Name ###
 
@@ -20,14 +20,14 @@ To do this, add the following to the boot partition after writing the image.
   * Create an empty file named 'ssh' (touch ssh).
   * Create a file named 'wpa_supplicant.conf' with the following contents
 
-ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
-update_config=1
-country=US
-
-network={
-    ssid="<the network's ssid>"
-    psk="<the network's password>"
-}
+        country=US
+        ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+        update_config=1
+        
+        network={
+            ssid="<the network's ssid>"
+            psk="<the network's password>"
+        }
 
 Boot the pi.
 
@@ -37,8 +37,9 @@ pi@<the IP address>'. The password is 'raspberry'.
 NOTE that if the extra USB<->wifi adapter is plugged in, there may be
 two IP addresses. Only one will allow logins!
 
-## Set the Locale and the Timezone ##
+## Update /etc/hosts and Set the Locale and the Timezone ##
 
+Add local hosts to /etc/hosts.
 sudo raspi-config
 	- Add en_US.UTF-8.
 	- Choose en_US.UTF-8 as a default.
@@ -49,14 +50,14 @@ sudo reboot
 ## Change the Password and Update ##
 
 passwd
-sudo apt update
-sudo apt upgrade
-sudo apt autoremove
+sudo apt -y update
+sudo apt -y upgrade
+sudo apt -y autoremove
 sudo reboot
 
 ## Set up the Environment ##
 
-ssh-keygen -t rsa -C "pi@raspberrypi"
+ssh-keygen -t rsa -C pi@${HOSTNAME}
 git clone https://github.com/johnjacques/environment.git
 rm $HOME/.profile
 ln -s $HOME/environment/login $HOME/.profile
@@ -71,7 +72,7 @@ sudo reboot
 sudo systemctl set-default multi-user.target
 sudo reboot
 
-### DHCP Server and Access Point ###
+## DHCP Server and Access Point ##
 
 This is useful when trying to communicate with the raspberry pi in a
 remote location (no internet) such as astrophotography. The steps are
@@ -84,6 +85,14 @@ steps. I've added a USB wifi adapter to the pi
 sudo apt install dnsmasq hostapd
 sudo systemctl stop dnsmasq
 sudo systemctl stop hostapd
+
+...to keep the interface names consistent, use ifrename
+
+sudo apt install ifrename
+
+...create /etc/iftab with the following
+wlan0 mac <mac address of the built-in wifi interface>
+wlan1 mac <mac address of the plug in wifi interface>
 
 ...replace /etc/dhcpcd.conf with the following
 interface wlan1
@@ -122,10 +131,12 @@ sudo systemctl unmask dnsmasq
 sudo systemctl enable dnsmasq
 sudo systemctl start dnsmasq
 
-...to keep the interface names consistent, use ifrename
+## SSH Login Without Password ##
 
-sudo apt install ifrename
+From the build server,
 
-...create /etc/iftab with the following
-wlan0 mac <mac address of the built-in wifi interface>
-wlan1 mac <mac address of the plug in wifi interface>
+cat .ssh/id_rsa.pub
+
+Copy the output of the above, and on the pi,
+
+echo <output from above> >> .ssh/authorized_keys
