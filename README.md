@@ -30,7 +30,8 @@ Mount the Linux root partition, and edit <mount point>/etc/hostname.
 ### Set Up the Network ###
 
 To do this, mount the boot partition and add the following to the boot
-partition after writing the image.
+partition (not the boot directory in the root partition!) after
+writing the image.
 
   * Create an empty file named 'ssh' in the boot partition (touch ssh).
   * Create a file named 'wpa\_supplicant.conf' with the following contents
@@ -44,13 +45,27 @@ partition after writing the image.
             psk="<the network's password>"
         }
 
-Boot the pi.
+### Add a User ###
+
+Also in the boot partition, create a file named userconf that contains the following.
+
+<user name>:<encrypted password>
+
+To create an encrypted password, do the following
+
+        echo <the password> | openssl password -6 -stdin
+
+### Boot the Pi ###
 
 After booting the pi, check the router to find the IP address and 'ssh
-pi@<the IP address>'. The password is 'raspberry'.
+<user from above>@<the IP address>'.
 
 NOTE that if the extra USB<->wifi adapter is plugged in, there may be
 two IP addresses. Only one will allow logins!
+
+### Add Packages ###
+
+apt install git
 
 ## Update /etc/hosts and Set the Locale and the Timezone ##
 
@@ -63,9 +78,8 @@ sudo rm /etc/localtime
 sudo ln -s /usr/share/zoneinfo/US/Central /etc/localtime
 sudo reboot
 
-## Change the Password and Update ##
+## Update ##
 
-passwd
 sudo apt -y update
 sudo apt -y upgrade
 sudo apt -y autoremove
